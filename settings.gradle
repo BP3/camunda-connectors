@@ -1,4 +1,6 @@
 
 include('connectors')
-includeBuild('build-logic')
+include('connectors:metadata')
+//includeBuild('build-logic')
+
 
