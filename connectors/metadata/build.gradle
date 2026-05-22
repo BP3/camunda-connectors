@@ -103,3 +103,12 @@ tasks.named('jar') {
 tasks.named('assemble') {
     dependsOn tasks.named('shadowJar')
 }
+
+// After the shadow jar task completes, copy it to the top-level distro folder
+tasks.register('copyJarToDistro', Copy) {
+    dependsOn shadowJar
+    from jar.outputs
+    into "${rootProject.projectDir}/distro"
+}
+
+build.dependsOn copyJarToDistro
