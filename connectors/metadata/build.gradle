@@ -1,0 +1,105 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.6'
+    id 'jacoco'
+    id 'checkstyle'
+}
+
+group = 'com.bp3.connector.camunda'
+version = "${versionApplication}"
+description = 'Instance Metadata Connector'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+checkstyle {
+    toolVersion = "${versionCheckStyleTools}"
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'connectors'
+        url = 'https://artifacts.camunda.com/artifactory/connectors/'
+        mavenContent { releasesOnly() }
+    }
+    maven {
+        name = 'connectors-snapshots'
+        url = 'https://artifacts.camunda.com/artifactory/connectors-snapshots/'
+        mavenContent { snapshotsOnly() }
+    }
+}
+
+dependencies {
+    implementation "io.camunda.connector:connector-core:${versionConnectors}"
+    implementation "io.camunda.connector:connector-validation:${versionConnectors}"
+    // Element template generator annotations — compile-time only.
+    compileOnly "io.camunda.connector:element-template-generator-annotations:8.9.2"
+    implementation "org.slf4j:slf4j-api:${versionSlf4jApi}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${versionJacksonDatabind}"
+    implementation "io.camunda:camunda-client-java:${versionConnectors}"
+
+    runtimeOnly 'ch.qos.logback:logback-classic:1.5.16'
+
+    // --- test ---
+    testImplementation "org.junit.jupiter:junit-jupiter:${versionJunitJupiter}"
+    testImplementation "org.assertj:assertj-core:${versionAssertj}"
+    // For testing connectors locally in bundle with runtime
+    testImplementation "io.camunda.connector:spring-boot-starter-camunda-connectors:${versionConnectors}"
+    testImplementation "io.camunda.connector:connector-runtime-test:${versionConnectors}"
+    testImplementation "org.mockito:mockito-core:${versionMockito}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${versionMockito}"
+    testImplementation "org.awaitility:awaitility:${versionAwaitility}"
+    testImplementation "io.camunda:camunda-process-test-spring:${versionCamunda}"
+
+    // Gradle 9 no longer adds junit-platform-launcher implicitly when
+    // useJUnitPlatform() is configured — it must be declared explicitly.
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${versionJunitJupiter}"
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
+}
+
+tasks.named('jacocoTestReport') {
+    dependsOn test
+    reports {
+        html.required.set(true)
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.90
+            }
+        }
+    }
+}
+
+// Shadow / fat jar — Gradle equivalent of maven-shade-plugin. Produces the
+// "uber" jar containing the connector + its non-provided dependencies.
+shadowJar {
+    archiveClassifier.set('')   // overwrite the plain jar (matches Maven's `shade` default)
+}
+
+// Make `build` produce the shaded jar in place of the thin one (matches Maven
+// behaviour where the shaded jar is the default `package` output).
+tasks.named('jar') {
+    enabled = false
+}
+tasks.named('assemble') {
+    dependsOn tasks.named('shadowJar')
+}
