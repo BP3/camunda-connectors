@@ -106,8 +106,7 @@ tasks.named('assemble') {
 
 // After the shadow jar task completes, copy it to the top-level distro folder
 tasks.register('copyJarToDistro', Copy) {
-    dependsOn shadowJar
-    from jar.outputs
+    from shadowJar.archiveFile
     into "${rootProject.projectDir}/distro"
 }
 
