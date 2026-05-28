@@ -19,8 +19,8 @@ jobs:
       - name: Download JAR
         uses: actions/download-artifact@v4
         with:
-          name: worker-jar
-          path: build/libs
+          name: connectors
+          path: distro
 
       - name: Build Docker image of application
         run:  docker build -t $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME .
