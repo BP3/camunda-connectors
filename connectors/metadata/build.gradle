@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'com.gradleup.shadow' version '8.3.6'
     id 'jacoco'
     id 'checkstyle'
 }
@@ -89,24 +88,8 @@ jacocoTestCoverageVerification {
     }
 }
 
-// Shadow / fat jar — Gradle equivalent of maven-shade-plugin. Produces the
-// "uber" jar containing the connector + its non-provided dependencies.
-shadowJar {
-    archiveClassifier.set('')   // overwrite the plain jar (matches Maven's `shade` default)
-}
-
-// Make `build` produce the shaded jar in place of the thin one (matches Maven
-// behaviour where the shaded jar is the default `package` output).
-tasks.named('jar') {
-    enabled = false
-}
-tasks.named('assemble') {
-    dependsOn tasks.named('shadowJar')
-}
-
 // After the shadow jar task completes, copy it to the top-level distro folder
 tasks.register('copyJarToDistro', Copy) {
-    from shadowJar.archiveFile
     into "${rootProject.projectDir}/distro"
 }
 
