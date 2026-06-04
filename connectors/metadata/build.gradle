@@ -43,7 +43,7 @@ dependencies {
     implementation "io.camunda.connector:connector-core:${versionConnectors}"
     implementation "io.camunda.connector:connector-validation:${versionConnectors}"
     // Element template generator annotations — compile-time only.
-    compileOnly "io.camunda.connector:element-template-generator-annotations:8.9.2"
+    compileOnly "io.camunda.connector:element-template-generator-annotations:${versionTemplateAnnotations}"
     implementation "org.slf4j:slf4j-api:${versionSlf4jApi}"
     implementation "com.fasterxml.jackson.core:jackson-databind:${versionJacksonDatabind}"
     implementation "io.camunda:camunda-client-java:${versionConnectors}"
