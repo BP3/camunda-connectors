@@ -40,13 +40,13 @@ repositories {
 }
 
 dependencies {
-    implementation "io.camunda.connector:connector-core:${versionConnectors}"
-    implementation "io.camunda.connector:connector-validation:${versionConnectors}"
+    implementation "io.camunda.connector:connector-core:${versionCamunda}"
+    implementation "io.camunda.connector:connector-validation:${versionCamunda}"
     // Element template generator annotations — compile-time only.
-    compileOnly "io.camunda.connector:element-template-generator-annotations:${versionTemplateAnnotations}"
+    compileOnly "io.camunda.connector:element-template-generator-annotations:${versionCamunda}"
     implementation "org.slf4j:slf4j-api:${versionSlf4jApi}"
     implementation "com.fasterxml.jackson.core:jackson-databind:${versionJacksonDatabind}"
-    implementation "io.camunda:camunda-client-java:${versionConnectors}"
+    implementation "io.camunda:camunda-client-java:${versionCamunda}"
 
     runtimeOnly 'ch.qos.logback:logback-classic:1.5.16'
 
@@ -54,8 +54,8 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:${versionJunitJupiter}"
     testImplementation "org.assertj:assertj-core:${versionAssertj}"
     // For testing connectors locally in bundle with runtime
-    testImplementation "io.camunda.connector:spring-boot-starter-camunda-connectors:${versionConnectors}"
-    testImplementation "io.camunda.connector:connector-runtime-test:${versionConnectors}"
+    testImplementation "io.camunda.connector:spring-boot-starter-camunda-connectors:${versionCamunda}"
+    testImplementation "io.camunda.connector:connector-runtime-test:${versionCamunda}"
     testImplementation "org.mockito:mockito-core:${versionMockito}"
     testImplementation "org.mockito:mockito-junit-jupiter:${versionMockito}"
     testImplementation "org.awaitility:awaitility:${versionAwaitility}"
