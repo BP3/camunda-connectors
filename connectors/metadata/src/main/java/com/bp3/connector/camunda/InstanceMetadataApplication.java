@@ -37,8 +37,6 @@ import java.net.URI;
 )
 public class InstanceMetadataApplication implements OutboundConnectorFunction {
     public static final String DEFAULT_PROCESS_VARIABLE = "metadata";
-    public static final String REST_URL = System.getProperty("CAMUNDA_CLIENT_RESTADDRESS", "http://zeebe:8080");
-    public static final String GRPC_URL = System.getProperty("CAMUNDA_CLIENT_GRPCADDRESS", "http://zeebe:26500");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceMetadataApplication.class);
 
@@ -50,11 +48,13 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
     }
 
     protected CamundaClient createCamundaClient() {
+        String restUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_RESTADDRESS", "http://zeebe:8080");
+        String grpcUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_GRPCADDRESS", "http://zeebe:26500");
         return CamundaClient
                 .newClientBuilder()
                 .preferRestOverGrpc(true)
-                .grpcAddress(URI.create(GRPC_URL))
-                .restAddress(URI.create(REST_URL))
+                .grpcAddress(URI.create(grpcUrl))
+                .restAddress(URI.create(restUrl))
                 .applyEnvironmentVariableOverrides(true)
                 .build();
     }
