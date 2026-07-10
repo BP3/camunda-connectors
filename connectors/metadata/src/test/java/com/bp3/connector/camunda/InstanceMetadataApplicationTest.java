@@ -46,19 +46,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class InstanceMetadataApplicationTest {
-    @Mock
-    private OutboundConnectorContext context;
-    @Mock
-    private ProcessInstanceGetRequest processInstanceGetRequest;
-    @Mock
-    private CamundaFuture<ProcessInstance> processInstanceFuture;
-    @Mock
-    private SetVariablesCommandImpl setVariablesCommand;
-    @Mock
-    private CamundaFuture<SetVariablesResponse> setVariablesFuture;
-    @Mock
-    private SetVariablesResponse setVariablesResponse;
-
     // Known metadata the mocked Camunda client returns, so tests can assert the
     // Response is populated from it rather than merely non-null.
     private static final long PROCESS_INSTANCE_KEY = 12345L;
@@ -71,6 +58,19 @@ class InstanceMetadataApplicationTest {
     private static final long PARENT_ELEMENT_INSTANCE_KEY = 22222L;
     private static final String TENANT_ID = "bp3-tenant";
     private static final Set<String> TAGS = Set.of("priority", "eu-region");
+
+    @Mock
+    private OutboundConnectorContext context;
+    @Mock
+    private ProcessInstanceGetRequest processInstanceGetRequest;
+    @Mock
+    private CamundaFuture<ProcessInstance> processInstanceFuture;
+    @Mock
+    private SetVariablesCommandImpl setVariablesCommand;
+    @Mock
+    private CamundaFuture<SetVariablesResponse> setVariablesFuture;
+    @Mock
+    private SetVariablesResponse setVariablesResponse;
 
     private CamundaClient camundaClient;
     private InstanceMetadataApplication connector;
@@ -109,7 +109,7 @@ class InstanceMetadataApplicationTest {
         return result;
     }
 
-    private static void assertMatchesKnownMetadata(Response response) {
+    private static void assertMatchesKnownMetadata(final Response response) {
         assertThat(response).isNotNull();
         assertThat(response.processInstanceKey()).isEqualTo(PROCESS_INSTANCE_KEY);
         assertThat(response.processDefinitionId()).isEqualTo(PROCESS_DEFINITION_ID);
