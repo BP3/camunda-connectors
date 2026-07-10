@@ -49,7 +49,7 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
 
     protected CamundaClient createCamundaClient() {
         String restUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_RESTADDRESS", "http://zeebe:8080");
-        String grpcUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_GRPCADDRESS", "http://zeebe:26500");
+        String grpcUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_GRPCADDRESS", "grpc://zeebe:26500");
         return CamundaClient
                 .newClientBuilder()
                 .preferRestOverGrpc(true)
