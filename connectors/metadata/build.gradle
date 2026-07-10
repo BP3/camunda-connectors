@@ -79,6 +79,7 @@ tasks.named('jacocoTestReport') {
 }
 
 jacocoTestCoverageVerification {
+    dependsOn test
     violationRules {
         rule {
             limit {
@@ -86,6 +87,12 @@ jacocoTestCoverageVerification {
             }
         }
     }
+}
+
+// Enforce the coverage threshold on every build, not just when the
+// verification task is invoked explicitly.
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
 }
 
 // After the shadow jar task completes, copy it to the top-level distro folder
