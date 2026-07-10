@@ -30,8 +30,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.util.Map;
 
@@ -43,7 +41,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class InstanceMetadataApplicationTest {
     @Mock
     private OutboundConnectorContext context;
@@ -73,10 +70,6 @@ class InstanceMetadataApplicationTest {
         when(camundaClient.newProcessInstanceGetRequest(anyLong())).thenReturn(processInstanceGetRequest);
         when(processInstanceGetRequest.send()).thenReturn(processInstanceFuture);
         when(processInstanceFuture.join()).thenReturn(new ProcessInstanceImpl(new ProcessInstanceResult()));
-        when(camundaClient.newSetVariablesCommand(anyLong())).thenReturn(setVariablesCommand);
-        when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommand);
-        when(setVariablesCommand.send()).thenReturn(setVariablesFuture);
-        when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
     }
 
     @Test
@@ -92,6 +85,10 @@ class InstanceMetadataApplicationTest {
 
     @Test
     public void testAsJobWorker() throws Exception {
+        when(camundaClient.newSetVariablesCommand(anyLong())).thenReturn(setVariablesCommand);
+        when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommand);
+        when(setVariablesCommand.send()).thenReturn(setVariablesFuture);
+        when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
         when(context.getJobContext())
             .thenReturn(
                 new TestJobContext(Map::of, () -> null)
