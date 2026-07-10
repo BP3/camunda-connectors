@@ -36,6 +36,8 @@ import org.mockito.quality.Strictness;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
@@ -99,5 +101,31 @@ class InstanceMetadataApplicationTest {
         Response response = connector.execute(context);
         assertNotNull(response);
         verify(camundaClient).newSetVariablesCommand(anyLong());
+    }
+
+    @Test
+    public void testFetchFailureIsEnrichedWithProcessInstanceKey() {
+        when(context.getJobContext())
+            .thenReturn(
+                new TestJobContext(() -> Map.of("elementTemplateId", "io.camunda.example.template.v1"), () -> null)
+            );
+        when(processInstanceFuture.join()).thenThrow(new RuntimeException("Zeebe unavailable"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> connector.execute(context));
+        assertTrue(exception.getMessage().startsWith("Failed to fetch metadata for process instance "));
+        assertNotNull(exception.getCause());
+    }
+
+    @Test
+    public void testSetVariablesFailureIsEnrichedWithProcessInstanceKey() {
+        when(context.getJobContext())
+            .thenReturn(
+                new TestJobContext(Map::of, () -> null)
+            );
+        when(setVariablesFuture.join()).thenThrow(new RuntimeException("Zeebe unavailable"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> connector.execute(context));
+        assertTrue(exception.getMessage().startsWith("Failed to set metadata variable for process instance "));
+        assertNotNull(exception.getCause());
     }
 }

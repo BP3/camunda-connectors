@@ -67,11 +67,16 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
         long processInstanceKey = job.getProcessInstanceKey();
 
         // get process instance metadata
-        ProcessInstance processInstance = null;
-        processInstance = this.camundaClient
-            .newProcessInstanceGetRequest(processInstanceKey)
-            .send()
-            .join();
+        ProcessInstance processInstance;
+        try {
+            processInstance = this.camundaClient
+                .newProcessInstanceGetRequest(processInstanceKey)
+                .send()
+                .join();
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "Failed to fetch metadata for process instance " + processInstanceKey, e);
+        }
 
         // convert process instance metadata into our response object
         Response response = new Response(
@@ -89,10 +94,15 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
 
         // if connector is being called as a job worker then we have to return the metadata using the camunda client
         if (job.getCustomHeaders().isEmpty()) {
-            this.camundaClient.newSetVariablesCommand(processInstanceKey)
-                .variable(DEFAULT_PROCESS_VARIABLE, response)
-                .send()
-                .join();
+            try {
+                this.camundaClient.newSetVariablesCommand(processInstanceKey)
+                    .variable(DEFAULT_PROCESS_VARIABLE, response)
+                    .send()
+                    .join();
+            } catch (Exception e) {
+                throw new RuntimeException(
+                    "Failed to set metadata variable for process instance " + processInstanceKey, e);
+            }
         }
 
         LOGGER.debug("FINISHED getInstanceMetadata()");
