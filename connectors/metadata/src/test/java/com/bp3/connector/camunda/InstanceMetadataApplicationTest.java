@@ -16,12 +16,11 @@ import com.bp3.connector.camunda.model.Response;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.CamundaFuture;
+import io.camunda.client.api.command.SetVariablesCommandStep1;
+import io.camunda.client.api.command.SetVariablesCommandStep1.SetVariablesCommandStep2;
 import io.camunda.client.api.fetch.ProcessInstanceGetRequest;
 import io.camunda.client.api.response.SetVariablesResponse;
 import io.camunda.client.api.search.response.ProcessInstance;
-import io.camunda.client.impl.command.SetVariablesCommandImpl;
-import io.camunda.client.impl.search.response.ProcessInstanceImpl;
-import io.camunda.client.protocol.rest.ProcessInstanceResult;
 import io.camunda.connector.api.outbound.OutboundConnectorContext;
 import io.camunda.connector.runtime.test.outbound.TestJobContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +51,11 @@ class InstanceMetadataApplicationTest {
     @Mock
     private CamundaFuture<ProcessInstance> processInstanceFuture;
     @Mock
-    private SetVariablesCommandImpl setVariablesCommand;
+    private ProcessInstance processInstance;
+    @Mock
+    private SetVariablesCommandStep1 setVariablesCommand;
+    @Mock
+    private SetVariablesCommandStep2 setVariablesCommandStep2;
     @Mock
     private CamundaFuture<SetVariablesResponse> setVariablesFuture;
     @Mock
@@ -72,10 +75,10 @@ class InstanceMetadataApplicationTest {
         };
         when(camundaClient.newProcessInstanceGetRequest(anyLong())).thenReturn(processInstanceGetRequest);
         when(processInstanceGetRequest.send()).thenReturn(processInstanceFuture);
-        when(processInstanceFuture.join()).thenReturn(new ProcessInstanceImpl(new ProcessInstanceResult()));
+        when(processInstanceFuture.join()).thenReturn(processInstance);
         when(camundaClient.newSetVariablesCommand(anyLong())).thenReturn(setVariablesCommand);
-        when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommand);
-        when(setVariablesCommand.send()).thenReturn(setVariablesFuture);
+        when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommandStep2);
+        when(setVariablesCommandStep2.send()).thenReturn(setVariablesFuture);
         when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
     }
 
