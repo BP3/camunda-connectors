@@ -24,6 +24,7 @@ import io.camunda.connector.generator.java.annotation.ElementTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.net.URI;
 
 @OutboundConnector(name = "Instance Metadata", type = "com.bp3:instance-metadata:1")
@@ -35,7 +36,7 @@ import java.net.URI;
     icon = "bp3-icon.png",
     documentationRef = "https://"
 )
-public class InstanceMetadataApplication implements OutboundConnectorFunction {
+public class InstanceMetadataApplication implements OutboundConnectorFunction, Closeable {
     public static final String DEFAULT_PROCESS_VARIABLE = "metadata";
     public static final String REST_URL = System.getProperty("CAMUNDA_CLIENT_RESTADDRESS", "http://zeebe:8080");
     public static final String GRPC_URL = System.getProperty("CAMUNDA_CLIENT_GRPCADDRESS", "http://zeebe:26500");
@@ -98,5 +99,12 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
         LOGGER.debug("FINISHED getInstanceMetadata()");
 
         return response;
+    }
+
+    @Override
+    public void close() {
+        if (camundaClient != null) {
+            camundaClient.close();
+        }
     }
 }
