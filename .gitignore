@@ -4,7 +4,7 @@
 
 /build
 distro/
-**/.gradle
+.gradle/
 
 # Compiled class file
 *.class
