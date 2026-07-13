@@ -24,6 +24,7 @@ import io.camunda.connector.generator.java.annotation.ElementTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.net.URI;
 
 @OutboundConnector(name = "Instance Metadata", type = "com.bp3:instance-metadata:1")
@@ -35,7 +36,7 @@ import java.net.URI;
     icon = "bp3-icon.png",
     documentationRef = "https://github.com/BP3/camunda-connectors/connectors/metadata"
 )
-public class InstanceMetadataApplication implements OutboundConnectorFunction {
+public class InstanceMetadataApplication implements OutboundConnectorFunction, Closeable {
     public static final String DEFAULT_PROCESS_VARIABLE = "metadata";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceMetadataApplication.class);
@@ -108,5 +109,12 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
         LOGGER.debug("FINISHED getInstanceMetadata()");
 
         return response;
+    }
+
+    @Override
+    public void close() {
+        if (camundaClient != null) {
+            camundaClient.close();
+        }
     }
 }
