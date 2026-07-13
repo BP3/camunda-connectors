@@ -33,7 +33,7 @@ import java.net.URI;
     version = 1,
     description = "Retrieves metadata about the current process instance.",
     icon = "bp3-icon.png",
-    documentationRef = "https://"
+    documentationRef = "https://github.com/BP3/camunda-connectors/connectors/metadata"
 )
 public class InstanceMetadataApplication implements OutboundConnectorFunction {
     public static final String DEFAULT_PROCESS_VARIABLE = "metadata";
