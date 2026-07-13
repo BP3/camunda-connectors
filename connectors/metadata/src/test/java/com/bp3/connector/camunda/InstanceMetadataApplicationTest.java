@@ -92,26 +92,25 @@ class InstanceMetadataApplicationTest {
         };
         when(camundaClient.newProcessInstanceGetRequest(anyLong())).thenReturn(processInstanceGetRequest);
         when(processInstanceGetRequest.send()).thenReturn(processInstanceFuture);
-        when(processInstanceFuture.join()).thenReturn(new ProcessInstanceImpl(knownProcessInstanceResult()));
+        stubKnownMetadata(processInstance);
+        when(processInstanceFuture.join()).thenReturn(processInstance);
         when(camundaClient.newSetVariablesCommand(anyLong())).thenReturn(setVariablesCommand);
         when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommandStep2);
         when(setVariablesCommandStep2.send()).thenReturn(setVariablesFuture);
         when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
     }
 
-    private static ProcessInstanceResult knownProcessInstanceResult() {
-        ProcessInstanceResult result = new ProcessInstanceResult();
-        result.setProcessInstanceKey(Long.toString(PROCESS_INSTANCE_KEY));
-        result.setProcessDefinitionId(PROCESS_DEFINITION_ID);
-        result.setProcessDefinitionName(PROCESS_DEFINITION_NAME);
-        result.setProcessDefinitionVersion(PROCESS_DEFINITION_VERSION);
-        result.setProcessDefinitionVersionTag(PROCESS_DEFINITION_VERSION_TAG);
-        result.setProcessDefinitionKey(Long.toString(PROCESS_DEFINITION_KEY));
-        result.setParentProcessInstanceKey(Long.toString(PARENT_PROCESS_INSTANCE_KEY));
-        result.setParentElementInstanceKey(Long.toString(PARENT_ELEMENT_INSTANCE_KEY));
-        result.setTenantId(TENANT_ID);
-        result.setTags(TAGS);
-        return result;
+    private static void stubKnownMetadata(final ProcessInstance instance) {
+        when(instance.getProcessInstanceKey()).thenReturn(PROCESS_INSTANCE_KEY);
+        when(instance.getProcessDefinitionId()).thenReturn(PROCESS_DEFINITION_ID);
+        when(instance.getProcessDefinitionName()).thenReturn(PROCESS_DEFINITION_NAME);
+        when(instance.getProcessDefinitionVersion()).thenReturn(PROCESS_DEFINITION_VERSION);
+        when(instance.getProcessDefinitionVersionTag()).thenReturn(PROCESS_DEFINITION_VERSION_TAG);
+        when(instance.getProcessDefinitionKey()).thenReturn(PROCESS_DEFINITION_KEY);
+        when(instance.getParentProcessInstanceKey()).thenReturn(PARENT_PROCESS_INSTANCE_KEY);
+        when(instance.getParentElementInstanceKey()).thenReturn(PARENT_ELEMENT_INSTANCE_KEY);
+        when(instance.getTenantId()).thenReturn(TENANT_ID);
+        when(instance.getTags()).thenReturn(TAGS);
     }
 
     private static void assertMatchesKnownMetadata(final Response response) {
