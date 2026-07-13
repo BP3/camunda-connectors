@@ -16,12 +16,11 @@ import com.bp3.connector.camunda.model.Response;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.CamundaFuture;
+import io.camunda.client.api.command.SetVariablesCommandStep1;
+import io.camunda.client.api.command.SetVariablesCommandStep1.SetVariablesCommandStep2;
 import io.camunda.client.api.fetch.ProcessInstanceGetRequest;
 import io.camunda.client.api.response.SetVariablesResponse;
 import io.camunda.client.api.search.response.ProcessInstance;
-import io.camunda.client.impl.command.SetVariablesCommandImpl;
-import io.camunda.client.impl.search.response.ProcessInstanceImpl;
-import io.camunda.client.protocol.rest.ProcessInstanceResult;
 import io.camunda.connector.api.outbound.OutboundConnectorContext;
 import io.camunda.connector.runtime.test.outbound.TestJobContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +36,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
@@ -66,7 +68,11 @@ class InstanceMetadataApplicationTest {
     @Mock
     private CamundaFuture<ProcessInstance> processInstanceFuture;
     @Mock
-    private SetVariablesCommandImpl setVariablesCommand;
+    private ProcessInstance processInstance;
+    @Mock
+    private SetVariablesCommandStep1 setVariablesCommand;
+    @Mock
+    private SetVariablesCommandStep2 setVariablesCommandStep2;
     @Mock
     private CamundaFuture<SetVariablesResponse> setVariablesFuture;
     @Mock
@@ -88,8 +94,8 @@ class InstanceMetadataApplicationTest {
         when(processInstanceGetRequest.send()).thenReturn(processInstanceFuture);
         when(processInstanceFuture.join()).thenReturn(new ProcessInstanceImpl(knownProcessInstanceResult()));
         when(camundaClient.newSetVariablesCommand(anyLong())).thenReturn(setVariablesCommand);
-        when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommand);
-        when(setVariablesCommand.send()).thenReturn(setVariablesFuture);
+        when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommandStep2);
+        when(setVariablesCommandStep2.send()).thenReturn(setVariablesFuture);
         when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
     }
 
@@ -142,5 +148,31 @@ class InstanceMetadataApplicationTest {
         Response response = connector.execute(context);
         assertMatchesKnownMetadata(response);
         verify(camundaClient).newSetVariablesCommand(anyLong());
+    }
+
+    @Test
+    public void testFetchFailureIsEnrichedWithProcessInstanceKey() {
+        when(context.getJobContext())
+            .thenReturn(
+                new TestJobContext(() -> Map.of("elementTemplateId", "io.camunda.example.template.v1"), () -> null)
+            );
+        when(processInstanceFuture.join()).thenThrow(new RuntimeException("Zeebe unavailable"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> connector.execute(context));
+        assertTrue(exception.getMessage().startsWith("Failed to fetch metadata for process instance "));
+        assertNotNull(exception.getCause());
+    }
+
+    @Test
+    public void testSetVariablesFailureIsEnrichedWithProcessInstanceKey() {
+        when(context.getJobContext())
+            .thenReturn(
+                new TestJobContext(Map::of, () -> null)
+            );
+        when(setVariablesFuture.join()).thenThrow(new RuntimeException("Zeebe unavailable"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> connector.execute(context));
+        assertTrue(exception.getMessage().startsWith("Failed to set metadata variable for process instance "));
+        assertNotNull(exception.getCause());
     }
 }
