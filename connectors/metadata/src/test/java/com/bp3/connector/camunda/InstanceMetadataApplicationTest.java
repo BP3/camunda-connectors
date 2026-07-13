@@ -93,7 +93,6 @@ class InstanceMetadataApplicationTest {
         when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
     }
 
-    // The REST model's key setters take Strings; ProcessInstanceImpl parses them into Longs.
     private static ProcessInstanceResult knownProcessInstanceResult() {
         ProcessInstanceResult result = new ProcessInstanceResult();
         result.setProcessInstanceKey(Long.toString(PROCESS_INSTANCE_KEY));
