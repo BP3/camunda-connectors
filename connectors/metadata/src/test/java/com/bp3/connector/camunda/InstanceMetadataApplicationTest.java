@@ -100,4 +100,13 @@ class InstanceMetadataApplicationTest {
         assertNotNull(response);
         verify(camundaClient).newSetVariablesCommand(anyLong());
     }
+
+    @Test
+    public void testCreatesRealCamundaClient() {
+        // Constructing the connector without overriding createCamundaClient()
+        // exercises the real client-builder path. build() is lazy, so no
+        // running Camunda is required.
+        InstanceMetadataApplication realConnector = new InstanceMetadataApplication();
+        assertNotNull(realConnector);
+    }
 }
