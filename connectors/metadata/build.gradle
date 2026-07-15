@@ -88,6 +88,12 @@ jacocoTestCoverageVerification {
     }
 }
 
+// Enforce the coverage threshold on every build, not just when the
+// verification task is invoked explicitly.
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
+}
+
 // After the shadow jar task completes, copy it to the top-level distro folder
 tasks.register('copyJarToDistro', Copy) {
     into "${rootProject.projectDir}/distro"
