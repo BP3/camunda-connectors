@@ -24,6 +24,7 @@ import io.camunda.connector.generator.java.annotation.ElementTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.net.URI;
 
 @OutboundConnector(name = "Instance Metadata", type = "com.bp3:instance-metadata:1")
@@ -33,12 +34,10 @@ import java.net.URI;
     version = 1,
     description = "Retrieves metadata about the current process instance.",
     icon = "bp3-icon.png",
-    documentationRef = "https://"
+    documentationRef = "https://github.com/BP3/camunda-connectors/connectors/metadata"
 )
-public class InstanceMetadataApplication implements OutboundConnectorFunction {
+public class InstanceMetadataApplication implements OutboundConnectorFunction, Closeable {
     public static final String DEFAULT_PROCESS_VARIABLE = "metadata";
-    public static final String REST_URL = System.getProperty("CAMUNDA_CLIENT_RESTADDRESS", "http://zeebe:8080");
-    public static final String GRPC_URL = System.getProperty("CAMUNDA_CLIENT_GRPCADDRESS", "http://zeebe:26500");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceMetadataApplication.class);
 
@@ -50,11 +49,13 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
     }
 
     protected CamundaClient createCamundaClient() {
+        String restUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_RESTADDRESS", "http://zeebe:8080");
+        String grpcUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_GRPCADDRESS", "grpc://zeebe:26500");
         return CamundaClient
                 .newClientBuilder()
                 .preferRestOverGrpc(true)
-                .grpcAddress(URI.create(GRPC_URL))
-                .restAddress(URI.create(REST_URL))
+                .grpcAddress(URI.create(grpcUrl))
+                .restAddress(URI.create(restUrl))
                 .applyEnvironmentVariableOverrides(true)
                 .build();
     }
@@ -67,11 +68,16 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
         long processInstanceKey = job.getProcessInstanceKey();
 
         // get process instance metadata
-        ProcessInstance processInstance = null;
-        processInstance = this.camundaClient
-            .newProcessInstanceGetRequest(processInstanceKey)
-            .send()
-            .join();
+        ProcessInstance processInstance;
+        try {
+            processInstance = this.camundaClient
+                .newProcessInstanceGetRequest(processInstanceKey)
+                .send()
+                .join();
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "Failed to fetch metadata for process instance " + processInstanceKey, e);
+        }
 
         // convert process instance metadata into our response object
         Response response = new Response(
@@ -89,14 +95,26 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
 
         // if connector is being called as a job worker then we have to return the metadata using the camunda client
         if (job.getCustomHeaders().isEmpty()) {
-            this.camundaClient.newSetVariablesCommand(processInstanceKey)
-                .variable(DEFAULT_PROCESS_VARIABLE, response)
-                .send()
-                .join();
+            try {
+                this.camundaClient.newSetVariablesCommand(processInstanceKey)
+                    .variable(DEFAULT_PROCESS_VARIABLE, response)
+                    .send()
+                    .join();
+            } catch (Exception e) {
+                throw new RuntimeException(
+                    "Failed to set metadata variable for process instance " + processInstanceKey, e);
+            }
         }
 
         LOGGER.debug("FINISHED getInstanceMetadata()");
 
         return response;
+    }
+
+    @Override
+    public void close() {
+        if (camundaClient != null) {
+            camundaClient.close();
+        }
     }
 }
