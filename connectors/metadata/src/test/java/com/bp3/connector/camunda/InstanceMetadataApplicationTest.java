@@ -33,7 +33,9 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.util.Map;
+import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,6 +48,19 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class InstanceMetadataApplicationTest {
+    // Known metadata the mocked Camunda client returns, so tests can assert the
+    // Response is populated from it rather than merely non-null.
+    private static final long PROCESS_INSTANCE_KEY = 12345L;
+    private static final String PROCESS_DEFINITION_ID = "Process_BP3TestProcess";
+    private static final String PROCESS_DEFINITION_NAME = "BP3 Test Process";
+    private static final int PROCESS_DEFINITION_VERSION = 3;
+    private static final String PROCESS_DEFINITION_VERSION_TAG = "2026-01";
+    private static final long PROCESS_DEFINITION_KEY = 67890L;
+    private static final long PARENT_PROCESS_INSTANCE_KEY = 11111L;
+    private static final long PARENT_ELEMENT_INSTANCE_KEY = 22222L;
+    private static final String TENANT_ID = "bp3-tenant";
+    private static final Set<String> TAGS = Set.of("priority", "eu-region");
+
     @Mock
     private OutboundConnectorContext context;
     @Mock
@@ -77,11 +92,39 @@ class InstanceMetadataApplicationTest {
         };
         when(camundaClient.newProcessInstanceGetRequest(anyLong())).thenReturn(processInstanceGetRequest);
         when(processInstanceGetRequest.send()).thenReturn(processInstanceFuture);
+        stubKnownMetadata(processInstance);
         when(processInstanceFuture.join()).thenReturn(processInstance);
         when(camundaClient.newSetVariablesCommand(anyLong())).thenReturn(setVariablesCommand);
         when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommandStep2);
         when(setVariablesCommandStep2.send()).thenReturn(setVariablesFuture);
         when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
+    }
+
+    private static void stubKnownMetadata(final ProcessInstance instance) {
+        when(instance.getProcessInstanceKey()).thenReturn(PROCESS_INSTANCE_KEY);
+        when(instance.getProcessDefinitionId()).thenReturn(PROCESS_DEFINITION_ID);
+        when(instance.getProcessDefinitionName()).thenReturn(PROCESS_DEFINITION_NAME);
+        when(instance.getProcessDefinitionVersion()).thenReturn(PROCESS_DEFINITION_VERSION);
+        when(instance.getProcessDefinitionVersionTag()).thenReturn(PROCESS_DEFINITION_VERSION_TAG);
+        when(instance.getProcessDefinitionKey()).thenReturn(PROCESS_DEFINITION_KEY);
+        when(instance.getParentProcessInstanceKey()).thenReturn(PARENT_PROCESS_INSTANCE_KEY);
+        when(instance.getParentElementInstanceKey()).thenReturn(PARENT_ELEMENT_INSTANCE_KEY);
+        when(instance.getTenantId()).thenReturn(TENANT_ID);
+        when(instance.getTags()).thenReturn(TAGS);
+    }
+
+    private static void assertMatchesKnownMetadata(final Response response) {
+        assertThat(response).isNotNull();
+        assertThat(response.processInstanceKey()).isEqualTo(PROCESS_INSTANCE_KEY);
+        assertThat(response.processDefinitionId()).isEqualTo(PROCESS_DEFINITION_ID);
+        assertThat(response.processDefinitionName()).isEqualTo(PROCESS_DEFINITION_NAME);
+        assertThat(response.processDefinitionVersion()).isEqualTo(PROCESS_DEFINITION_VERSION);
+        assertThat(response.processDefinitionVersionTag()).isEqualTo(PROCESS_DEFINITION_VERSION_TAG);
+        assertThat(response.processDefinitionKey()).isEqualTo(PROCESS_DEFINITION_KEY);
+        assertThat(response.parentProcessInstanceKey()).isEqualTo(PARENT_PROCESS_INSTANCE_KEY);
+        assertThat(response.parentElementInstanceKey()).isEqualTo(PARENT_ELEMENT_INSTANCE_KEY);
+        assertThat(response.tenantId()).isEqualTo(TENANT_ID);
+        assertThat(response.tags()).containsExactlyInAnyOrderElementsOf(TAGS);
     }
 
     @Test
@@ -91,7 +134,7 @@ class InstanceMetadataApplicationTest {
                 new TestJobContext(() -> Map.of("elementTemplateId", "io.camunda.example.template.v1"), () -> null)
             );
         Response response = connector.execute(context);
-        assertNotNull(response);
+        assertMatchesKnownMetadata(response);
         verify(camundaClient, never()).newSetVariablesCommand(anyLong());
     }
 
@@ -102,7 +145,7 @@ class InstanceMetadataApplicationTest {
                 new TestJobContext(Map::of, () -> null)
             );
         Response response = connector.execute(context);
-        assertNotNull(response);
+        assertMatchesKnownMetadata(response);
         verify(camundaClient).newSetVariablesCommand(anyLong());
     }
 
