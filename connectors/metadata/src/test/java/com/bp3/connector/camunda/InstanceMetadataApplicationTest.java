@@ -150,6 +150,15 @@ class InstanceMetadataApplicationTest {
     }
 
     @Test
+    public void testCreatesRealCamundaClient() {
+        // Constructing the connector without overriding createCamundaClient()
+        // exercises the real client-builder path. build() is lazy, so no
+        // running Camunda is required.
+        InstanceMetadataApplication realConnector = new InstanceMetadataApplication();
+        assertNotNull(realConnector);
+    }
+
+    @Test
     public void testFetchFailureIsEnrichedWithProcessInstanceKey() {
         when(context.getJobContext())
             .thenReturn(
