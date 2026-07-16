@@ -94,8 +94,9 @@ tasks.named('check') {
     dependsOn jacocoTestCoverageVerification
 }
 
-// After the shadow jar task completes, copy it to the top-level distro folder
+// After the jar is built, copy it to the top-level distro folder
 tasks.register('copyJarToDistro', Copy) {
+    from tasks.named('jar')
     into "${rootProject.projectDir}/distro"
 }
 
