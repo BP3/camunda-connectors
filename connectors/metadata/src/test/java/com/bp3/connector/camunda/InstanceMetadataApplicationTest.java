@@ -29,8 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +44,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class InstanceMetadataApplicationTest {
     // Known metadata the mocked Camunda client returns, so tests can assert the
     // Response is populated from it rather than merely non-null.
@@ -83,6 +80,8 @@ class InstanceMetadataApplicationTest {
 
     @BeforeEach
     void setUp() {
+        // Keep setUp() free of stubbing: strict Mockito (no LENIENT) reports any
+        // stub a given test does not use, so each test stubs only what it needs.
         camundaClient = Mockito.mock(CamundaClient.class);
         connector = new InstanceMetadataApplication() {
             @Override
@@ -90,14 +89,29 @@ class InstanceMetadataApplicationTest {
                 return camundaClient;
             }
         };
+    }
+
+    // Stubs a successful process-instance fetch that returns the known metadata.
+    private void stubSuccessfulFetch() {
         when(camundaClient.newProcessInstanceGetRequest(anyLong())).thenReturn(processInstanceGetRequest);
         when(processInstanceGetRequest.send()).thenReturn(processInstanceFuture);
         stubKnownMetadata(processInstance);
         when(processInstanceFuture.join()).thenReturn(processInstance);
+    }
+
+    // Stubs a process-instance fetch that fails when the result is joined.
+    private void stubFailedFetch() {
+        when(camundaClient.newProcessInstanceGetRequest(anyLong())).thenReturn(processInstanceGetRequest);
+        when(processInstanceGetRequest.send()).thenReturn(processInstanceFuture);
+        when(processInstanceFuture.join()).thenThrow(new RuntimeException("Zeebe unavailable"));
+    }
+
+    // Stubs the set-variables command chain up to (but not including) join(), so
+    // each test decides whether the join succeeds or throws.
+    private void stubSetVariablesCommand() {
         when(camundaClient.newSetVariablesCommand(anyLong())).thenReturn(setVariablesCommand);
         when(setVariablesCommand.variable(any(), any())).thenReturn(setVariablesCommandStep2);
         when(setVariablesCommandStep2.send()).thenReturn(setVariablesFuture);
-        when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
     }
 
     private static void stubKnownMetadata(final ProcessInstance instance) {
@@ -129,6 +143,7 @@ class InstanceMetadataApplicationTest {
 
     @Test
     public void testAsConnector() throws Exception {
+        stubSuccessfulFetch();
         when(context.getJobContext())
             .thenReturn(
                 new TestJobContext(() -> Map.of("elementTemplateId", "io.camunda.example.template.v1"), () -> null)
@@ -140,6 +155,9 @@ class InstanceMetadataApplicationTest {
 
     @Test
     public void testAsJobWorker() throws Exception {
+        stubSuccessfulFetch();
+        stubSetVariablesCommand();
+        when(setVariablesFuture.join()).thenReturn(setVariablesResponse);
         when(context.getJobContext())
             .thenReturn(
                 new TestJobContext(Map::of, () -> null)
@@ -160,11 +178,11 @@ class InstanceMetadataApplicationTest {
 
     @Test
     public void testFetchFailureIsEnrichedWithProcessInstanceKey() {
+        stubFailedFetch();
         when(context.getJobContext())
             .thenReturn(
                 new TestJobContext(() -> Map.of("elementTemplateId", "io.camunda.example.template.v1"), () -> null)
             );
-        when(processInstanceFuture.join()).thenThrow(new RuntimeException("Zeebe unavailable"));
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> connector.execute(context));
         assertTrue(exception.getMessage().startsWith("Failed to fetch metadata for process instance "));
@@ -173,11 +191,13 @@ class InstanceMetadataApplicationTest {
 
     @Test
     public void testSetVariablesFailureIsEnrichedWithProcessInstanceKey() {
+        stubSuccessfulFetch();
+        stubSetVariablesCommand();
+        when(setVariablesFuture.join()).thenThrow(new RuntimeException("Zeebe unavailable"));
         when(context.getJobContext())
             .thenReturn(
                 new TestJobContext(Map::of, () -> null)
             );
-        when(setVariablesFuture.join()).thenThrow(new RuntimeException("Zeebe unavailable"));
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> connector.execute(context));
         assertTrue(exception.getMessage().startsWith("Failed to set metadata variable for process instance "));
