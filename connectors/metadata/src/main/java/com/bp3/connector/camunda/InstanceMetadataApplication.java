@@ -48,14 +48,6 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction, C
     }
 
     protected CamundaClient createCamundaClient() {
-        // Build the client from the standard Camunda client configuration
-        // (CAMUNDA_*/ZEEBE_* environment variables for addresses, auth mode and
-        // OAuth credentials). This lets the connector reach the engine wherever
-        // the connector runtime itself is configured to run — local,
-        // Self-Managed or SaaS — without connector-specific settings or a
-        // hard-coded host. Do NOT force addresses here: hard-coding a default
-        // (previously "http://zeebe:8080") masks missing configuration and
-        // fails with UnknownHostException outside the local docker-compose.
         return CamundaClient
                 .newClientBuilder()
                 .preferRestOverGrpc(true)
