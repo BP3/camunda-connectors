@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.net.URI;
 
 @OutboundConnector(name = "Instance Metadata", type = "com.bp3:instance-metadata:1")
 @ElementTemplate(
@@ -49,13 +48,17 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction, C
     }
 
     protected CamundaClient createCamundaClient() {
-        String restUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_RESTADDRESS", "http://zeebe:8080");
-        String grpcUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_GRPCADDRESS", "grpc://zeebe:26500");
+        // Build the client from the standard Camunda client configuration
+        // (CAMUNDA_*/ZEEBE_* environment variables for addresses, auth mode and
+        // OAuth credentials). This lets the connector reach the engine wherever
+        // the connector runtime itself is configured to run — local,
+        // Self-Managed or SaaS — without connector-specific settings or a
+        // hard-coded host. Do NOT force addresses here: hard-coding a default
+        // (previously "http://zeebe:8080") masks missing configuration and
+        // fails with UnknownHostException outside the local docker-compose.
         return CamundaClient
                 .newClientBuilder()
                 .preferRestOverGrpc(true)
-                .grpcAddress(URI.create(grpcUrl))
-                .restAddress(URI.create(restUrl))
                 .applyEnvironmentVariableOverrides(true)
                 .build();
     }
