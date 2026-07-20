@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.net.URI;
 
 @OutboundConnector(name = "Instance Metadata", type = "com.bp3:instance-metadata:1")
 @ElementTemplate(
@@ -49,13 +48,9 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction, C
     }
 
     protected CamundaClient createCamundaClient() {
-        String restUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_RESTADDRESS", "http://zeebe:8080");
-        String grpcUrl = System.getenv().getOrDefault("CAMUNDA_CLIENT_GRPCADDRESS", "grpc://zeebe:26500");
         return CamundaClient
                 .newClientBuilder()
                 .preferRestOverGrpc(true)
-                .grpcAddress(URI.create(grpcUrl))
-                .restAddress(URI.create(restUrl))
                 .applyEnvironmentVariableOverrides(true)
                 .build();
     }
