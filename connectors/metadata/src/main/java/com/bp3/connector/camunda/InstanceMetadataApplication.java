@@ -24,8 +24,6 @@ import io.camunda.connector.generator.java.annotation.ElementTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-
 @OutboundConnector(name = "Instance Metadata", type = "com.bp3:instance-metadata:1")
 @ElementTemplate(
     id = "com.bp3.connector.instance-metadata.v1",
@@ -35,24 +33,21 @@ import java.io.Closeable;
     icon = "bp3-icon.png",
     documentationRef = "https://github.com/BP3/camunda-connectors/connectors/metadata"
 )
-public class InstanceMetadataApplication implements OutboundConnectorFunction, Closeable {
+public class InstanceMetadataApplication implements OutboundConnectorFunction {
     public static final String DEFAULT_PROCESS_VARIABLE = "metadata";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceMetadataApplication.class);
 
     private final CamundaClient camundaClient;
 
-    public InstanceMetadataApplication() {
+    // The connector reuses the connectors-runtime's own CamundaClient (injected
+    // by Spring), so it inherits exactly the connection and authentication the
+    // bundle is configured with — SaaS or Self-Managed — with no connector
+    // specific address/credential settings. The connector does NOT own or close
+    // this client; its lifecycle belongs to the runtime.
+    public InstanceMetadataApplication(final CamundaClient camundaClient) {
         LOGGER.debug("CONSTRUCTING INSTANCE METADATA CONNECTOR");
-        this.camundaClient = createCamundaClient();
-    }
-
-    protected CamundaClient createCamundaClient() {
-        return CamundaClient
-                .newClientBuilder()
-                .preferRestOverGrpc(true)
-                .applyEnvironmentVariableOverrides(true)
-                .build();
+        this.camundaClient = camundaClient;
     }
 
     @Override
@@ -104,12 +99,5 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction, C
         LOGGER.debug("FINISHED getInstanceMetadata()");
 
         return response;
-    }
-
-    @Override
-    public void close() {
-        if (camundaClient != null) {
-            camundaClient.close();
-        }
     }
 }
