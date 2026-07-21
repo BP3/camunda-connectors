@@ -40,11 +40,6 @@ public class InstanceMetadataApplication implements OutboundConnectorFunction {
 
     private final CamundaClient camundaClient;
 
-    // The connector reuses the connectors-runtime's own CamundaClient (injected
-    // by Spring), so it inherits exactly the connection and authentication the
-    // bundle is configured with — SaaS or Self-Managed — with no connector
-    // specific address/credential settings. The connector does NOT own or close
-    // this client; its lifecycle belongs to the runtime.
     public InstanceMetadataApplication(final CamundaClient camundaClient) {
         LOGGER.debug("CONSTRUCTING INSTANCE METADATA CONNECTOR");
         this.camundaClient = camundaClient;
