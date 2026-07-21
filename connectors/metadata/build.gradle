@@ -44,6 +44,10 @@ dependencies {
     implementation "io.camunda.connector:connector-validation:${versionCamunda}"
     // Element template generator annotations — compile-time only.
     compileOnly "io.camunda.connector:element-template-generator-annotations:${versionCamunda}"
+    // Spring wiring for the connector auto-configuration. Provided by the
+    // connectors-bundle at runtime, so compile-time only — must NOT be shipped.
+    compileOnly "org.springframework.boot:spring-boot-autoconfigure:${versionSpringBoot}"
+    compileOnly "org.springframework:spring-context:${versionSpring}"
     implementation "org.slf4j:slf4j-api:${versionSlf4jApi}"
     implementation "com.fasterxml.jackson.core:jackson-databind:${versionJacksonDatabind}"
     implementation "io.camunda:camunda-client-java:${versionCamunda}"

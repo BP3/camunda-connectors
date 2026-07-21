@@ -83,12 +83,7 @@ class InstanceMetadataApplicationTest {
         // Keep setUp() free of stubbing: strict Mockito (no LENIENT) reports any
         // stub a given test does not use, so each test stubs only what it needs.
         camundaClient = Mockito.mock(CamundaClient.class);
-        connector = new InstanceMetadataApplication() {
-            @Override
-            protected CamundaClient createCamundaClient() {
-                return camundaClient;
-            }
-        };
+        connector = new InstanceMetadataApplication(camundaClient);
     }
 
     // Stubs a successful process-instance fetch that returns the known metadata.
@@ -168,12 +163,12 @@ class InstanceMetadataApplicationTest {
     }
 
     @Test
-    public void testCreatesRealCamundaClient() {
-        // Constructing the connector without overriding createCamundaClient()
-        // exercises the real client-builder path. build() is lazy, so no
-        // running Camunda is required.
-        InstanceMetadataApplication realConnector = new InstanceMetadataApplication();
-        assertNotNull(realConnector);
+    public void testAutoConfigurationCreatesConnectorBean() {
+        // The auto-configuration builds the connector with the runtime-provided
+        // CamundaClient; verify the bean factory method wires it up.
+        InstanceMetadataApplication bean =
+            new InstanceMetadataConnectorAutoConfiguration().instanceMetadataConnector(camundaClient);
+        assertNotNull(bean);
     }
 
     @Test
