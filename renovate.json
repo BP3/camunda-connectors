@@ -1,0 +1,47 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "timezone": "Europe/London",
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "prConcurrentLimit": 5,
+  "gradle": {
+    "enabled": true
+  },
+  "dockerfile": {
+    "enabled": true
+  },
+  "github-actions": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["gradle"],
+      "matchPackagePatterns": ["^io\\.camunda", "^org\\.camunda"],
+      "groupName": "camunda dependencies"
+    },
+    {
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["camunda/connectors-bundle"],
+      "groupName": "camunda connectors-bundle image"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": ["gradle"],
+      "groupName": "non-major dependencies"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true
+  }
+}
