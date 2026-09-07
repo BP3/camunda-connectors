@@ -95,7 +95,9 @@
         <!--<property name="tokens" value="METHOD_DEF,ANNOTATION_FIELD_DEF"/>-->
         <!--</module>-->
         <!--<module name="JavadocType"/>-->
-        <module name="JavadocStyle"/>
+        <!-- Replaces JavadocStyle, removed in Checkstyle 14 -->
+        <module name="SummaryJavadoc"/>
+        <module name="JavadocParagraph"/>
 
         <!-- Checks for Naming Conventions.                  -->
         <!-- See http://checkstyle.sf.net/config_naming.html -->
