@@ -40,10 +40,10 @@ repositories {
 }
 
 dependencies {
-    implementation "io.camunda.connector:connector-core:${versionCamunda}"
-    implementation "io.camunda.connector:connector-validation:${versionCamunda}"
+    implementation "io.camunda.connector:connector-core:${versionCamundaConnectors}"
+    implementation "io.camunda.connector:connector-validation:${versionCamundaConnectors}"
     // Element template generator annotations — compile-time only.
-    compileOnly "io.camunda.connector:element-template-generator-annotations:${versionCamunda}"
+    compileOnly "io.camunda.connector:element-template-generator-annotations:${versionCamundaConnectors}"
     // Spring wiring for the connector auto-configuration. Provided by the
     // connectors-bundle at runtime, so compile-time only — must NOT be shipped.
     compileOnly "org.springframework.boot:spring-boot-autoconfigure:${versionSpringBoot}"
@@ -58,8 +58,8 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:${versionJunitJupiter}"
     testImplementation "org.assertj:assertj-core:${versionAssertj}"
     // For testing connectors locally in bundle with runtime
-    testImplementation "io.camunda.connector:spring-boot-starter-camunda-connectors:${versionCamunda}"
-    testImplementation "io.camunda.connector:connector-runtime-test:${versionCamunda}"
+    testImplementation "io.camunda.connector:spring-boot-starter-camunda-connectors:${versionCamundaConnectors}"
+    testImplementation "io.camunda.connector:connector-runtime-test:${versionCamundaConnectors}"
     testImplementation "org.mockito:mockito-core:${versionMockito}"
     testImplementation "org.mockito:mockito-junit-jupiter:${versionMockito}"
     testImplementation "org.awaitility:awaitility:${versionAwaitility}"
