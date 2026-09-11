@@ -3,15 +3,15 @@ name: Build Image
 on:
   workflow_call:
     inputs:
-#      username:
-#        required: true
-#        type: string
-#      project-name:
-#        required: true
-#        type: string
-#      org-name:
-#        required: true
-#        type: string
+      username:
+        required: true
+        type: string
+      project-name:
+        required: true
+        type: string
+      org-name:
+        required: true
+        type: string
       image-name:
         required: true
         type: string

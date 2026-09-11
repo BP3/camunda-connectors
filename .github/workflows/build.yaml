@@ -52,6 +52,9 @@ jobs:
       packages: write
     uses: ./.github/workflows/build-image.yml
     with:
+      username: ${{ github.actor }}
+      project-name: 'camunda-connectors'
+      org-name: 'bp3'
       image-name: ghcr.io/bp3/camunda-connectors
       branch-name: ${{ github.head_ref || github.ref_name }}
     secrets: inherit
