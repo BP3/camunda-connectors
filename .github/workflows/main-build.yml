@@ -1,10 +1,5 @@
 name: Build & Test
 
-env:
-  GITHUB_IMAGE_NAME: 'ghcr.io/bp3/camunda-connectors'
-  PROJECT_NAME: 'camunda-connectors'
-  ORG_NAME: 'bp3'
-
 on:
   push:
     branches:
@@ -14,16 +9,15 @@ on:
 jobs:
 
   call-workflow-build-image:
-    needs: build
     permissions:
       contents: read
       packages: write
     uses: ./.github/workflows/build-image.yml
     with:
       username: ${{ github.actor }}
-      project-name: ${{ env.PROJECT_NAME }}
-      org-name: ${{ env.ORG_NAME }}
-      image-name: ${{ env.GITHUB_IMAGE_NAME }}
+      project-name: 'camunda-connectors'
+      org-name: 'bp3'
+      image-name: 'ghcr.io/bp3/camunda-connectors'
       branch-name: ${{ github.head_ref || github.ref_name }}
     secrets: inherit
 
