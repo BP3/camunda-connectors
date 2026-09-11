@@ -6,39 +6,36 @@ on:
       - published
 
 env:
+  GITHUB_IMAGE_NAME: "ghcr.io/bp3/camunda-connectors"
   DOCKER_IMAGE_NAME: "bp3global/bp3-camunda-connectors"
 
 jobs:
 
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v6
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4.6.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
+      # The image was already built and tested (see build-image.yml) when merged to
+      # main, and is tagged 'main'. Re-tag it and push it rather than rebuilding.
+      - name: Pull Docker image of application
+        run: docker pull $GITHUB_IMAGE_NAME:main
 
-      - name: Make Gradle wrapper executable
-        run: chmod +x ./gradlew
-
-      - name: Build
-        run: ./gradlew build --no-daemon
-
-      - name: Build Docker image of application
-        run:  docker build -t $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME .
+      - name: Tag image and push to local registry
+        run: |
+          docker tag $GITHUB_IMAGE_NAME:main $GITHUB_IMAGE_NAME:$GITHUB_REF_NAME
+          docker push $GITHUB_IMAGE_NAME:$GITHUB_REF_NAME
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4.6.0
@@ -46,8 +43,9 @@ jobs:
           username: "bp3docker"
           password: ${{ secrets.DOCKERHUB_BP3DOCKER }}
 
-      - name: Push Docker image to Docker Hub
+      - name: Tag and push image to Docker Hub
         run: |
+          docker tag $GITHUB_IMAGE_NAME:main $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME
+          docker tag $GITHUB_IMAGE_NAME:main $DOCKER_IMAGE_NAME:latest
           docker push $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME
-          docker tag  $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME $DOCKER_IMAGE_NAME:latest
           docker push $DOCKER_IMAGE_NAME:latest
