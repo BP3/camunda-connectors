@@ -15,6 +15,9 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
 
       - name: Login to GitHub Container Registry
@@ -24,9 +27,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull docker image of application
+      # The image was already built and tested (see build-image.yml) when merged to
+      # main, and is tagged 'main'. Re-tag it and push it rather than rebuilding.
+      - name: Pull Docker image of application
+        run: docker pull $GITHUB_IMAGE_NAME:main
+
+      - name: Tag image and push to local registry
         run: |
-          docker pull $GITHUB_IMAGE_NAME:main
+          docker tag $GITHUB_IMAGE_NAME:main $GITHUB_IMAGE_NAME:$GITHUB_REF_NAME
+          docker push $GITHUB_IMAGE_NAME:$GITHUB_REF_NAME
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4.6.0
@@ -34,14 +43,9 @@ jobs:
           username: "bp3docker"
           password: ${{ secrets.DOCKERHUB_BP3DOCKER }}
 
-      - name: Tag image and push to local registry
+      - name: Tag and push image to Docker Hub
         run: |
-          docker tag $GITHUB_IMAGE_NAME:main $GITHUB_IMAGE_NAME:$GITHUB_REF_NAME
-          docker push $GITHUB_IMAGE_NAME:$GITHUB_REF_NAME
-
-      - name: Push Docker image to Docker Hub
-        run: |
-          docker tag  $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME
-          docker tag  $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME $DOCKER_IMAGE_NAME:latest
+          docker tag $GITHUB_IMAGE_NAME:main $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME
+          docker tag $GITHUB_IMAGE_NAME:main $DOCKER_IMAGE_NAME:latest
           docker push $DOCKER_IMAGE_NAME:$GITHUB_REF_NAME
           docker push $DOCKER_IMAGE_NAME:latest
