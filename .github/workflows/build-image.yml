@@ -146,5 +146,5 @@ jobs:
       - name: Run integration tests
         env:
           CAMUNDA_VERSION: ${{ steps.camunda-version.outputs.version }}
-          CONNECTOR_IMAGE: ${{ inputs.image-name }}:$IMAGE_TAG
+          CONNECTOR_IMAGE: ${{ inputs.image-name }}:${{ needs.build-image.outputs.tag }}
         run: ./integration-tests/test-runner.sh
