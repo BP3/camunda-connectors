@@ -111,11 +111,10 @@ jobs:
           echo "image-tag  = $IMAGE_TAG"
           docker build -t "$IMAGE:$IMAGE_TAG" .
 
-      - name: Push to local registry
+      - name: Push image to GitHub Container Registry
         env:
           IMAGE: ${{ inputs.image-name }}
-        run: |
-          docker push "$IMAGE:$IMAGE_TAG"
+        run: docker push "$IMAGE:$IMAGE_TAG"
 
   test-image:
     runs-on: ubuntu-latest
@@ -133,14 +132,19 @@ jobs:
           username: ${{ inputs.username }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull the image
+      - name: Pull image to test
         env:
           IMAGE: ${{ inputs.image-name }}
-        run: |
-          docker pull "$IMAGE:$IMAGE_TAG"
+        run: docker pull "$IMAGE:$IMAGE_TAG"
 
-      - name: Run Tests
-        env:
-          IMAGE: ${{ inputs.image-name }}
+      - name: Read Camunda version
+        id: camunda-version
         run: |
-          echo "Put tests here"
+          version=$(grep -E '^versionCamunda=' gradle.properties | cut -d= -f2)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Run integration tests
+        env:
+          CAMUNDA_VERSION: ${{ steps.camunda-version.outputs.version }}
+          CONNECTOR_IMAGE: ${{ inputs.image-name }}:${{ needs.build-image.outputs.tag }}
+        run: ./integration-tests/test-runner.sh

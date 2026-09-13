@@ -1,0 +1,37 @@
+services:
+  camunda:
+    image: camunda/camunda:${CAMUNDA_VERSION:?set CAMUNDA_VERSION, e.g. to the versionCamunda from gradle.properties}
+    container_name: camunda-connectors-test-camunda
+    ports:
+      - "26500:26500"
+      - "8088:8080"
+      - "9600:9600"
+    environment:
+      CAMUNDA_WEBAPPS_OPERATE_ENABLED: "false"
+      CAMUNDA_WEBAPPS_TASKLIST_ENABLED: "false"
+      CAMUNDA_WEBAPPS_IDENTITY_ENABLED: "false"
+      MANAGEMENT_HEALTH_PROBES_ENABLED: "true"
+      CAMUNDA_DATA_SECONDARY_STORAGE_TYPE: "rdbms"
+      CAMUNDA_DATA_SECONDARY_STORAGE_RDBMS_URL: "jdbc:h2:file:./camunda-data/h2db"
+      CAMUNDA_DATA_SECONDARY_STORAGE_RDBMS_USERNAME: "sa"
+      CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI: "true"
+      CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+
+  connector:
+    image: ${CONNECTOR_IMAGE:?set CONNECTOR_IMAGE to the image under test, e.g. ghcr.io/bp3/camunda-connectors:main}
+    container_name: camunda-connectors-test-bundle
+    ports:
+      - "8089:8080"
+    depends_on:
+      camunda:
+        condition: service_healthy
+    environment:
+      CAMUNDA_CLIENT_MODE: self-managed
+      CAMUNDA_CLIENT_RESTADDRESS: http://camunda:8080
+      CAMUNDA_CLIENT_GRPCADDRESS: http://camunda:26500
