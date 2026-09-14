@@ -35,14 +35,8 @@ fi
 
 testStatus='Success'
 
-# Are we running as part of a pipeline
-if [ ! -n "$CI" ]; then
-  alias "docker-compose"='docker compose'
-  docker_tty_opts=-i
-else
-  alias "docker-compose"='docker compose'
-  docker_tty_opts=-i
-fi
+alias "docker-compose"='docker compose'
+docker_tty_opts=-i
 
 #
 # This function will run a single test. It runs the actual test in a new shell.
@@ -53,13 +47,13 @@ fi
 #
 
 run_test () {
-  docker-compose -f $1 up -d
+  docker-compose -f "$TESTSDIR/$1" up -d
   echo Sleeping whilst compose stack comes up properly ...
   sleep 5
 
   echo "Running test $2"
 
-  TESTSDIR=$TESTSDIR DOCKER_TTY_OPTS=$docker_tty_opts /bin/sh $TESTSDIR/tests/$2 $IMAGE_REF
+  DOCKER_TTY_OPTS=$docker_tty_opts /bin/sh "$TESTSDIR/tests/$2" "$IMAGE_REF"
 
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -69,7 +63,7 @@ run_test () {
     echo "Test '$2' completed successfully (exit code '$rc')"
   fi
 
-  docker-compose -f $1 down
+  docker-compose -f "$TESTSDIR/$1" down
 
   return $rc
 }
