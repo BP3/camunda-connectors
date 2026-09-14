@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0z1glpm" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.45.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.9.0">
+  <bpmn:process id="metadata-as-job-worker-process" name="Test Process Injector As Job Worker" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_Start" name="Start">
+      <bpmn:extensionElements />
+      <bpmn:outgoing>Flow_10yt81g</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="Event_End" name="End">
+      <bpmn:incoming>Flow_19e5ja5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_10yt81g" sourceRef="StartEvent_Start" targetRef="Event_0rwsbzg" />
+    <bpmn:sequenceFlow id="Flow_1rcm8fg" sourceRef="Event_0rwsbzg" targetRef="Activity_JobWorkerInjectInfo" />
+    <bpmn:intermediateCatchEvent id="Event_0rwsbzg">
+      <bpmn:incoming>Flow_10yt81g</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rcm8fg</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0ac38qj">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="Flow_19e5ja5" sourceRef="Activity_JobWorkerInjectInfo" targetRef="Event_End" />
+    <bpmn:serviceTask id="Activity_JobWorkerInjectInfo" name="Job Worker Inject Info">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="com.bp3:instance-metadata:1" />
+        <zeebe:ioMapping>
+          <zeebe:output source="=metadata" target="meta" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1rcm8fg</bpmn:incoming>
+      <bpmn:outgoing>Flow_19e5ja5</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmn:message id="Message_1vqe7u1" name="Message_1vqe7u1">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=orderId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="metadata-as-job-worker-process">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_Start">
+        <dc:Bounds x="182" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="188" y="185" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1l5h4tl_di" bpmnElement="Event_End">
+        <dc:Bounds x="632" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="640" y="185" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_07k481z_di" bpmnElement="Event_0rwsbzg">
+        <dc:Bounds x="312" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0lyp5th_di" bpmnElement="Activity_JobWorkerInjectInfo">
+        <dc:Bounds x="440" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_10yt81g_di" bpmnElement="Flow_10yt81g">
+        <di:waypoint x="218" y="160" />
+        <di:waypoint x="312" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rcm8fg_di" bpmnElement="Flow_1rcm8fg">
+        <di:waypoint x="348" y="160" />
+        <di:waypoint x="440" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19e5ja5_di" bpmnElement="Flow_19e5ja5">
+        <di:waypoint x="540" y="160" />
+        <di:waypoint x="632" y="160" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

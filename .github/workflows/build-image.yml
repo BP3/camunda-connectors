@@ -143,4 +143,4 @@ jobs:
         env:
           IMAGE: ${{ inputs.image-name }}
         run: |
-          echo "Put tests here"
+          sh ./test-runner.sh $IMAGE_TAG
