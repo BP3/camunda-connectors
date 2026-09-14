@@ -4,7 +4,7 @@
 #
 # Licensed Materials - Property of BP3 Global
 #
-#  Instance Metadata Connector
+#  Connector Bundle
 #
 # Copyright © BP3 Global Inc 2026. All Rights Reserved.
 # This software is subject to copyright protection under
@@ -12,14 +12,15 @@
 #
 ############################################################################
 
-export CAMUNDA_VERSION=8.9.18
+if [ `dirname $0` != "" ]; then
+  cd `dirname $0`
+fi
+
+export CAMUNDA_VERSION=`grep '^versionCamunda=' ../gradle.properties | cut -d'=' -f2`
 export IMAGE_NAME=ghcr.io/bp3/camunda-connectors
 export IMAGE_REF=$1
 
-if [ "$TESTSDIR" = "" ]; then
-  TESTSDIR=`dirname $0`
-  export TESTSDIR
-fi
+echo "Running against Camunda version [${CAMUNDA_VERSION}]"
 
 # Want to make sure that we have the image we are supposed to be working with
 image=`docker images --format "{{.ID}} \t{{.Repository}} \t{{.Tag}}" --filter=reference="$IMAGE_NAME:$IMAGE_REF" | wc -l`
@@ -48,13 +49,13 @@ docker_tty_opts=-i
 #
 
 run_test () {
-  docker-compose -f "$TESTSDIR/$1" up -d
+  docker-compose -f $1 up -d
   echo Sleeping whilst compose stack comes up properly ...
-  sleep 5
+  sleep 10
 
   echo "Running test $2"
 
-  DOCKER_TTY_OPTS=$docker_tty_opts /bin/sh "$TESTSDIR/tests/$2" "$IMAGE_REF"
+  DOCKER_TTY_OPTS=$docker_tty_opts /bin/sh tests/$2 "$IMAGE_REF"
 
   rc=$?
   if [ $rc -ne 0 ]; then
@@ -64,13 +65,13 @@ run_test () {
     echo "Test '$2' completed successfully (exit code '$rc')"
   fi
 
-  docker-compose -f "$TESTSDIR/$1" down
+  docker-compose -f $1 down
 
   return $rc
 }
 
 tst_list=$(mktemp)
-'ls' -1S "$TESTSDIR"/tests/*.sh > "$tst_list"
+'ls' -1S tests/*.sh > "$tst_list"
 
 while read tst; do
   next_tst=`basename "$tst"`

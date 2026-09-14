@@ -1,10 +1,22 @@
 #!/bin/sh -e
 
+############################################################################
+#
+# Licensed Materials - Property of BP3
+#
+#  Connector Bundle
+#
+# Copyright © BP3 Global Inc. 2025. All Rights Reserved.
+# This software is subject to copyright protection under
+# the laws of the United States and other countries.
+#
+############################################################################
+
 export TESTNAME=`basename $0 .sh`
-export BPMN_FILE_NAME="$TESTSDIR/bpmn/metadata-as-job-worker.bpmn"
+export BPMN_FILE_NAME=bpmn/metadata-as-job-worker.bpmn
 
 # Load reusable functions
-. "$TESTSDIR/core-functions.sh"
+. core-functions.sh
 
 _setup() {
   :

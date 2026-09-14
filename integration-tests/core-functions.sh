@@ -4,7 +4,7 @@
 #
 # Licensed Materials - Property of BP3
 #
-# Web Modeler Extract Deploy (WMED)
+#  Connector Bundle
 #
 # Copyright © BP3 Global Inc. 2025. All Rights Reserved.
 # This software is subject to copyright protection under
