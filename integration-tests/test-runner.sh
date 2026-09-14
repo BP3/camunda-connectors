@@ -40,6 +40,7 @@ if [ ! -n "$CI" ]; then
   alias "docker-compose"='docker compose'
   docker_tty_opts=-i
 else
+  alias "docker-compose"='docker compose'
   docker_tty_opts=-i
 fi
 
