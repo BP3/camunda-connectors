@@ -143,4 +143,4 @@ jobs:
         env:
           IMAGE: ${{ inputs.image-name }}
         run: |
-          sh -x integration-tests/test-runner.sh ${{ github.head_ref || github.ref_name }}
+          integration-tests/test-runner.sh ${{ github.head_ref || github.ref_name }}
