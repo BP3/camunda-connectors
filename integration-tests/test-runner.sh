@@ -18,6 +18,7 @@ export IMAGE_REF=$1
 
 if [ "$TESTSDIR" = "" ]; then
   TESTSDIR=`dirname $0`
+  export TESTSDIR
 fi
 
 # Want to make sure that we have the image we are supposed to be working with
