@@ -34,6 +34,7 @@ else
 fi
 
 testStatus='Success'
+
 # Are we running as part of a pipeline
 if [ ! -n "$CI" ]; then
   alias "docker-compose"='docker compose'
