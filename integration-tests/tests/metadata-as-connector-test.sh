@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh -xe
 
 export TESTNAME=`basename $0 .sh`
 export BPMN_FILE_NAME=bpmn/metadata-as-connector.bpmn
