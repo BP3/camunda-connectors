@@ -54,7 +54,7 @@ run_test () {
 
   echo "Running test $2"
 
-  DOCKER_TTY_OPTS=$docker_tty_opts /bin/sh "$TESTSDIR/tests/$2" "$IMAGE_REF"
+  DOCKER_TTY_OPTS=$docker_tty_opts /bin/sh -x "$TESTSDIR/tests/$2" "$IMAGE_REF"
 
   rc=$?
   if [ $rc -ne 0 ]; then
