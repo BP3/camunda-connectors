@@ -16,7 +16,7 @@ export TESTNAME=`basename $0 .sh`
 export BPMN_FILE_NAME=bpmn/metadata-as-connector.bpmn
 
 # Load reusable functions
-. core-functions.sh
+. ./core-functions.sh
 
 _setup() {
   :
