@@ -143,4 +143,4 @@ jobs:
         env:
           IMAGE: ${{ inputs.image-name }}
         run: |
-          sh ./test-runner.sh $IMAGE_TAG
+          integration-tests/test-runner.sh $IMAGE_TAG
