@@ -52,7 +52,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:${versionJacksonDatabind}"
     implementation "io.camunda:camunda-client-java:${versionCamunda}"
 
-    runtimeOnly 'ch.qos.logback:logback-classic:1.5.16'
+    runtimeOnly 'ch.qos.logback:logback-classic:1.6.3'
 
     // --- test ---
     testImplementation "org.junit.jupiter:junit-jupiter:${versionJunitJupiter}"
