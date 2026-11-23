@@ -1,0 +1,52 @@
+name: Delete branch image when its PR closes
+
+# Branch builds push ghcr.io/bp3/camunda-connectors:<branch-name> (see build-image.yml).
+# Once the PR is merged or closed, that image is no longer needed. purge-packages.yml
+# catches anything this misses.
+
+on:
+  pull_request:
+    types: [closed]
+
+# Shares the group with purge-packages.yml: the cleanup action is not safe to run in
+# parallel against the same package.
+concurrency:
+  group: purge-packages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  delete-branch-image:
+    # PRs from forks get a read-only token and never pushed an image here.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      # Must match the tag derivation in build-image.yml.
+      - name: Derive image tag from branch name
+        id: tag
+        env:
+          RAW_BRANCH: ${{ github.head_ref }}
+        run: |
+          tag=$(printf '%s' "$RAW_BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/-/g; s/^[^a-zA-Z0-9_]+//')
+          tag=${tag:0:128}
+          if [ -z "$tag" ]; then tag=branch; fi
+          echo "Branch '$RAW_BRANCH' -> image tag '$tag'"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          # The tag only contains [a-zA-Z0-9._-], so escaping dots and anchoring makes
+          # an exact-match regex (use-regex is on for exclude-tags below).
+          echo "tag-regex=^$(printf '%s' "$tag" | sed 's/\./\\./g')\$" >> "$GITHUB_OUTPUT"
+
+      - name: Delete the branch image
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          owner: bp3
+          packages: camunda-connectors
+          # If the image also carries another tag, only this tag is removed.
+          delete-tags: ${{ steps.tag.outputs.tag-regex }}
+          # Safety net, same as purge-packages.yml.
+          use-regex: true
+          exclude-tags: '^(main|latest|built-test|v?[0-9]+\.[0-9]+\.[0-9]+.*)$'

@@ -39,9 +39,13 @@ jobs:
           use-regex: true
           exclude-tags: '^(main|latest|built-test|v?[0-9]+\.[0-9]+\.[0-9]+.*)$'
 
-          # Keep the 15 newest branch-build images, delete the rest. Excluded
-          # tags above do not consume these slots.
-          keep-n-tagged: 15
+          # Branch images are normally deleted when their PR closes
+          # (cleanup-branch-image.yml). This sweep catches the rest: any branch
+          # image not rebuilt in the last 14 days, whatever its tag, unless
+          # excluded above. A branch that is still active gets a new image on
+          # its next push.
+          delete-tags: '.+'
+          older-than: 14 days
 
           # Reclaim digests orphaned when a branch tag was moved to a new build.
           delete-untagged: true
