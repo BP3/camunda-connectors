@@ -107,9 +107,12 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE: ${{ inputs.image-name }}
         run: |
+          BUNDLE_VERSION=$(grep '^versionCamundaConnectors=' gradle.properties | cut -d'=' -f2)
+          if [ -z "$BUNDLE_VERSION" ]; then echo "versionCamundaConnectors not found in gradle.properties"; exit 1; fi
           echo "image-name = $IMAGE"
           echo "image-tag  = $IMAGE_TAG"
-          docker build -t "$IMAGE:$IMAGE_TAG" .
+          echo "bundle     = camunda/connectors-bundle:$BUNDLE_VERSION"
+          docker build --build-arg BUNDLE_VERSION="$BUNDLE_VERSION" -t "$IMAGE:$IMAGE_TAG" .
 
       - name: Push to local registry
         env:

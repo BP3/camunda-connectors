@@ -40,34 +40,45 @@ repositories {
 }
 
 dependencies {
-    implementation "io.camunda.connector:connector-core:${versionCamundaConnectors}"
-    implementation "io.camunda.connector:connector-validation:${versionCamundaConnectors}"
+    // Every library version comes from Camunda's connector-parent POM for the
+    // connectors-bundle release we build on (versionCamundaConnectors), so the
+    // code compiles and tests against exactly what the bundle runs. Don't add
+    // versions below; change versionCamundaConnectors instead.
+    def camundaBundle = platform("io.camunda.connector:connector-parent:${versionCamundaConnectors}")
+    implementation camundaBundle
+    compileOnly camundaBundle
+    testImplementation camundaBundle
+    testRuntimeOnly camundaBundle
+
+    implementation 'io.camunda.connector:connector-core'
+    implementation 'io.camunda.connector:connector-validation'
     // Element template generator annotations — compile-time only.
-    compileOnly "io.camunda.connector:element-template-generator-annotations:${versionCamundaConnectors}"
+    compileOnly 'io.camunda.connector:element-template-generator-annotations'
     // Spring wiring for the connector auto-configuration. Provided by the
     // connectors-bundle at runtime, so compile-time only — must NOT be shipped.
-    compileOnly "org.springframework.boot:spring-boot-autoconfigure:${versionSpringBoot}"
-    compileOnly "org.springframework:spring-context:${versionSpring}"
-    implementation "org.slf4j:slf4j-api:${versionSlf4jApi}"
-    implementation "com.fasterxml.jackson.core:jackson-databind:${versionJacksonDatabind}"
-    implementation "io.camunda:camunda-client-java:${versionCamunda}"
+    compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
+    compileOnly 'org.springframework:spring-context'
+    implementation 'org.slf4j:slf4j-api'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'io.camunda:camunda-client-java'
 
-    runtimeOnly 'ch.qos.logback:logback-classic:1.6.4'
+    runtimeOnly 'ch.qos.logback:logback-classic'
 
     // --- test ---
-    testImplementation "org.junit.jupiter:junit-jupiter:${versionJunitJupiter}"
-    testImplementation "org.assertj:assertj-core:${versionAssertj}"
-    // For testing connectors locally in bundle with runtime
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    // For testing connectors locally in bundle with runtime. Not managed by
+    // connector-parent, but released in step with it.
     testImplementation "io.camunda.connector:spring-boot-starter-camunda-connectors:${versionCamundaConnectors}"
-    testImplementation "io.camunda.connector:connector-runtime-test:${versionCamundaConnectors}"
-    testImplementation "org.mockito:mockito-core:${versionMockito}"
-    testImplementation "org.mockito:mockito-junit-jupiter:${versionMockito}"
-    testImplementation "org.awaitility:awaitility:${versionAwaitility}"
-    testImplementation "io.camunda:camunda-process-test-spring:${versionCamunda}"
+    testImplementation 'io.camunda.connector:connector-runtime-test'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'org.awaitility:awaitility'
+    testImplementation 'io.camunda:camunda-process-test-spring'
 
     // Gradle 9 no longer adds junit-platform-launcher implicitly when
     // useJUnitPlatform() is configured — it must be declared explicitly.
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${versionJunitJupiter}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {

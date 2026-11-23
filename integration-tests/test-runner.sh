@@ -16,7 +16,7 @@ if [ `dirname $0` != "" ]; then
   cd `dirname $0`
 fi
 
-export CAMUNDA_VERSION=`grep '^versionCamunda=' ../gradle.properties | cut -d'=' -f2`
+export CAMUNDA_VERSION=`grep '^versionCamundaServer=' ../gradle.properties | cut -d'=' -f2`
 export IMAGE_NAME=ghcr.io/bp3/camunda-connectors
 export IMAGE_REF=$1
 
