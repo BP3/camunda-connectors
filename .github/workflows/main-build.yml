@@ -12,6 +12,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+      # Test results and coverage reporting (check run and PR comments)
+      checks: write
+      pull-requests: write
     uses: ./.github/workflows/build-image.yml
     with:
       username: ${{ github.actor }}

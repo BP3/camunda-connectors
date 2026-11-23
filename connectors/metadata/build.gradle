@@ -90,6 +90,8 @@ tasks.named('jacocoTestReport') {
     dependsOn test
     reports {
         html.required.set(true)
+        // Read by CI to report coverage on pull requests.
+        xml.required.set(true)
     }
 }
 

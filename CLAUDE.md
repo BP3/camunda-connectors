@@ -59,6 +59,10 @@ can be a newer patch release than the bundle.
 - Pull requests (`branch-build.yml`) and pushes to `main` (`main-build.yml`) both call `build-image.yml`.
   It builds the jar, builds the image, pushes `ghcr.io/bp3/camunda-connectors:<branch-name>`, then runs
   the integration tests against that image.
+- Test results are reported even when tests fail. A `report-tests` job publishes unit and integration test
+  results (JUnit XML; `test-runner.sh` writes `integration-tests/build/test-results/`) as a "Test results"
+  check and a PR comment. JaCoCo coverage goes to the run summary and a "Code coverage" PR comment, and the HTML
+  report is uploaded as the `coverage-html` artifact. PRs from forks only get the summary page.
 - **Releases** (`release.yaml`) run when a GitHub release is published. They don't build anything. They
   retag the current `ghcr.io/bp3/camunda-connectors:main` image as the release tag and as
   `bp3global/bp3-camunda-connectors:<tag>` and `:latest` on Docker Hub. **Always wait for the main build of
