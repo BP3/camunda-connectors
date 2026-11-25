@@ -1,7 +1,8 @@
 # An example of how to run the connectors
 
-# Setup the image you want to run
-IMAGE=bp3global/bp3-camunda-connectors:8.9.6-0
+# The image to run. Defaults to the latest release; override it to pin a version, e.g.
+#   IMAGE=bp3global/bp3-camunda-connectors:8.9.20-0 ./run.sh
+IMAGE=${IMAGE:-bp3global/bp3-camunda-connectors:latest}
 
 # Make sure that environment details are not committed to git
 if [ -f ./env.sh ]; then
@@ -9,7 +10,7 @@ if [ -f ./env.sh ]; then
 fi
 
 # Disabling most other connectors cleans up the logs
-CONNOUTDIS=io.camunda:aws-bedrock:1,io.camunda:aws-comprehend:1,io.camunda:aws-dynamodb:1io.camunda:aws-eventbridge:1
+CONNOUTDIS=io.camunda:aws-bedrock:1,io.camunda:aws-comprehend:1,io.camunda:aws-dynamodb:1,io.camunda:aws-eventbridge:1
 CONNOUTDIS=$CONNOUTDIS,io.camunda:aws-lambda:1,io.camunda:aws-s3:1,io.camunda:aws-sagemaker:1,io.camunda:aws-sns:1
 CONNOUTDIS=$CONNOUTDIS,io.camunda:aws-sqs:1,io.camunda:aws-textract:1,io.camunda:aws:1,io.camunda:azure-blobstorage:1
 CONNOUTDIS=$CONNOUTDIS,io.camunda:box:1,io.camunda:connector-automationanywhere:1,io.camunda:connector-graphql:1
@@ -19,7 +20,7 @@ CONNOUTDIS=$CONNOUTDIS,io.camunda:embeddings-vector-database:1,io.camunda:google
 CONNOUTDIS=$CONNOUTDIS,io.camunda:google-gemini:1,io.camunda:google-sheets:1,io.camunda:http-json:1
 CONNOUTDIS=$CONNOUTDIS,io.camunda:idp-classification-connector-template:1,io.camunda:idp-extraction-connector-template:1
 CONNOUTDIS=$CONNOUTDIS,io.camunda:idp-structured-connector-template:1,io.camunda:idp-unstructured-connector-template:1
-CONNOUTDIS=$CONNOUTDIS,io.camunda:http-json:1,io.camunda:sendMessage:1,io.camunda:sendgrid:1,io.camunda:slack:1
+CONNOUTDIS=$CONNOUTDIS,io.camunda:sendMessage:1,io.camunda:sendgrid:1,io.camunda:slack:1
 CONNOUTDIS=$CONNOUTDIS,io.camunda:soap:1,io.camunda:webhook:1,io.camunda.agenticai:aiagent-job-worker:1
 CONNOUTDIS=$CONNOUTDIS,io.camunda.agenticai:a2aclient:0,io.camunda.agenticai:adhoctoolsschema:1
 CONNOUTDIS=$CONNOUTDIS,io.camunda.agenticai:aiagent:1,io.camunda.agenticai:mcpremoteclient:1
