@@ -63,6 +63,39 @@ jobs:
       - name: Build connector jar
         run: ./gradlew build --no-daemon
 
+      # The reporting steps below run even if the build failed (a failing test or
+      # the coverage gate), using whatever results were written.
+      - name: Upload unit test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-unit
+          path: connectors/metadata/build/test-results/test/*.xml
+          if-no-files-found: ignore
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-html
+          path: connectors/metadata/build/reports/jacoco/test/html/
+          if-no-files-found: ignore
+
+      # Coverage table on the run's summary page and, for pull requests from this
+      # repository, as a PR comment that is updated on each push. Display only:
+      # the 90% gate is enforced by Gradle (jacocoTestCoverageVerification).
+      - name: Report coverage
+        if: ${{ !cancelled() && hashFiles('connectors/metadata/build/reports/jacoco/test/jacocoTestReport.xml') != '' }}
+        uses: madrapps/jacoco-report@e51ce1f46f7f8b5331593f935e59cbaf44b84920 # v1.8.0
+        with:
+          paths: connectors/metadata/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 90
+          min-coverage-changed-files: 90
+          title: Code coverage
+          update-comment: true
+          comment-type: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) && 'both' || 'summary' }}
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4.8.0
         with:
@@ -151,3 +184,38 @@ jobs:
           IMAGE: ${{ inputs.image-name }}
         run: |
           integration-tests/test-runner.sh "$IMAGE_TAG"
+
+      - name: Upload integration test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-integration
+          path: integration-tests/build/test-results/*.xml
+          if-no-files-found: ignore
+
+  # Publishes unit and integration test results together: a check run, the run's
+  # summary page and, for pull requests from this repository, one PR comment
+  # that is updated on each push. Runs even if either test job failed.
+  report-tests:
+    runs-on: ubuntu-latest
+    needs: [build-image, test-image]
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Download test results
+        uses: actions/download-artifact@v8
+        with:
+          pattern: test-results-*
+          path: test-results
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@da5b7be67623cd59bbbd1a0ce4f022050a55605f # v2.26.0
+        with:
+          files: test-results/**/*.xml
+          check_name: Test results
+          # PRs from forks get a read-only token: report on the summary page only.
+          check_run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+          comment_mode: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) && 'always' || 'off' }}

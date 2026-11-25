@@ -37,6 +37,39 @@ fi
 
 testStatus='Success'
 
+# Each test's result is also written as JUnit XML, which CI publishes to the PR
+results_dir=build/test-results
+mkdir -p "$results_dir"
+results_cases=$(mktemp)
+tests_run=0
+tests_failed=0
+tests_time=0
+
+# Adds a <testcase> for one test: $1 name, $2 exit code, $3 seconds, $4 log file
+add_junit_case () {
+  {
+    echo "  <testcase classname=\"integration-tests\" name=\"$1\" time=\"$3\">"
+    if [ "$2" -ne 0 ]; then
+      echo "    <failure message=\"Exited with code $2\"/>"
+    fi
+    # Drop control characters XML can't hold, and split any ]]> so the CDATA stays valid
+    printf '    <system-out><![CDATA['
+    tr -d '\000-\010\013\014\016-\037' < "$4" | sed 's/]]>/]]]]><![CDATA[>/g'
+    echo ']]></system-out>'
+    echo '  </testcase>'
+  } >> "$results_cases"
+}
+
+write_junit () {
+  {
+    echo '<?xml version="1.0" encoding="UTF-8"?>'
+    echo "<testsuite name=\"integration-tests\" tests=\"$tests_run\" failures=\"$tests_failed\" errors=\"0\" time=\"$tests_time\">"
+    cat "$results_cases"
+    echo '</testsuite>'
+  } > "$results_dir/integration-tests.xml"
+  rm -f "$results_cases"
+}
+
 alias "docker-compose"='docker compose'
 docker_tty_opts=-i
 
@@ -55,9 +88,21 @@ run_test () {
 
   echo "Running test $2"
 
-  DOCKER_TTY_OPTS=$docker_tty_opts /bin/sh tests/$2 "$IMAGE_REF"
+  # Keep streaming the output to the log while capturing it for the JUnit report
+  test_log=$(mktemp)
+  rc_file=$(mktemp)
+  start=$(date +%s)
+  { DOCKER_TTY_OPTS=$docker_tty_opts /bin/sh tests/$2 "$IMAGE_REF"; echo $? > "$rc_file"; } 2>&1 | tee "$test_log"
+  rc=$(cat "$rc_file")
+  elapsed=$(( $(date +%s) - start ))
 
-  rc=$?
+  tests_run=$(( tests_run + 1 ))
+  tests_time=$(( tests_time + elapsed ))
+  if [ $rc -ne 0 ]; then
+    tests_failed=$(( tests_failed + 1 ))
+  fi
+  add_junit_case "`basename $2 .sh`" "$rc" "$elapsed" "$test_log"
+  rm -f "$test_log" "$rc_file"
   if [ $rc -ne 0 ]; then
     echo "Test '$2' completed with an error (exit code '$rc')"
     testStatus='Failure'
@@ -79,6 +124,8 @@ while read tst; do
 done < "$tst_list"
 
 rm -f "$tst_list"
+
+write_junit
 
 # See if ANY of the tests failed
 if [ "$testStatus" = "Success" ]; then

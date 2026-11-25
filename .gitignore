@@ -34,3 +34,6 @@ hs_err_pid*
 replay_pid*
 
 
+
+# Integration test results (JUnit XML)
+integration-tests/build/
